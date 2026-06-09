@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest *)",
+      "Bash(sudo chmod -R 755 /Users/yangseogjin/.npm/_cacache)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest init --defaults --yes)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000/games)",
+      "Bash(curl -s http://localhost:3000/games/g001)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(npm test *)"
+    ]
+  }
+}
