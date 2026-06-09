@@ -11,7 +11,9 @@
       "Bash(curl -s http://localhost:3000/games)",
       "Bash(curl -s http://localhost:3000/games/g001)",
       "Bash(pkill -f \"next dev\")",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(pip install *)",
+      "Bash(python *)"
     ]
   }
 }
