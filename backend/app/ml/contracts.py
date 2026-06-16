@@ -55,3 +55,23 @@ class ArticleTopicOutput(BaseModel):
     ranked_topics: List[str]
     suggested_category: str
     confidence: float
+
+
+class RegressionAdjustedBattingInput(BaseModel):
+    player_id: str
+    ab: int
+    h: int
+    bb: Optional[int] = None
+    hr: Optional[int] = None
+    league_avg: float = 0.269
+    prior_strength: int = 100
+
+
+class RegressionAdjustedBattingOutput(BaseModel):
+    observed_avg: float
+    adjusted_avg: float
+    reliability_score: float
+    shrinkage_amount: float
+    confidence: float
+    model_name: str
+    model_version: str

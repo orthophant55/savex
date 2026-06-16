@@ -1,7 +1,7 @@
-# KBO Insight — FastAPI Backend
+# SAVEX — FastAPI Backend
 
 KBO 세이버매트릭스 + AI 기사 생성 플랫폼의 백엔드 API 서버.  
-현재 MVP 단계로 모든 데이터는 **mock 데이터**이며, 실제 KBO API/LLM 연동은 준비됩니다.
+현재 MVP 단계로 모든 데이터는 **mock 데이터**이며, 실제 KBO 크롤링/LLM 연동은 준비된 구조만 제공합니다.
 
 ---
 
@@ -31,7 +31,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 cd backend
 pip install -r requirements.txt
 
-# 3. 환경변수 설정 (옵션)
+# 3. 환경변수 설정
 cp .env.example .env
 
 # 4. 서버 실행
@@ -54,6 +54,21 @@ docker compose -f docker-compose.backend.yml up --build
 
 ---
 
+## 환경변수 목록
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `KBO_DATA_ENABLED` | `false` | kbo-data 크롤러 활성화 여부 (ChromeDriver 필요) |
+| `KBO_INGESTION_MODE` | `mock` | `mock` 또는 `kbo-data` |
+| `KBO_REQUEST_DELAY_SECONDS` | `1.0` | 요청 간 딜레이 (과도한 요청 방지) |
+| `KBO_RAW_PAYLOAD_DIR` | `data/raw/kbo` | raw payload 저장 경로 |
+| `KBO_CHROMEDRIVER_PATH` | `None` | ChromeDriver 실행 파일 경로 (kbo-data 전용) |
+
+> **기본값 조합** (`KBO_DATA_ENABLED=false`, `KBO_INGESTION_MODE=mock`)으로 서버를 시작하면  
+> 모든 KBO 크롤링을 건너뛰고 mock 데이터만 반환합니다.
+
+---
+
 ## API 목록
 
 ### Health
@@ -72,6 +87,10 @@ docker compose -f docker-compose.backend.yml up --build
 |--------|------|-------|------|
 | GET | `/api/v1/players` | `team_id`, `position`, `query` | 선수 목록 (필터 가능) |
 | GET | `/api/v1/players/{player_id}` | - | 선수 상세 정보 |
+| GET | `/api/v1/players/{player_id}/stats` | - | 선수 세이버매트릭스 지표 |
+| GET | `/api/v1/players/{player_id}/projection` | - | 선수 시즌 예측 (ML) |
+| GET | `/api/v1/players/{player_id}/regression-adjusted` | - | Empirical Bayes 보정 AVG/OPS |
+| GET | `/api/v1/players/{player_id}/slump-risk` | - | 슬럼프 위험도 (ML) |
 
 ### Games
 | Method | Path | Query | 설명 |
@@ -86,7 +105,7 @@ docker compose -f docker-compose.backend.yml up --build
 ### Stats
 | Method | Path | 설명 |
 |--------|------|------|
-| GET | `/api/v1/standings` | 팀 순위표 |
+| GET | `/api/v1/standings` | 팀 순위표 (Pythagorean WPct 포함) |
 | GET | `/api/v1/stat-leaders` | 부문별 스탯 리더 |
 
 ### Articles
@@ -100,47 +119,108 @@ docker compose -f docker-compose.backend.yml up --build
 |--------|------|------|------|
 | POST | `/api/v1/ai/game-recap` | `{"game_id": "..."}` | 경기 리캡 스트리밍 |
 | POST | `/api/v1/ai/player-analysis` | `{"player_id": "..."}` | 선수 분석 스트리밍 |
+| POST | `/api/v1/ai/team-analysis` | `{"team_id": "..."}` | 팀 분석 스트리밍 |
+| POST | `/api/v1/ai/sabermetric-column` | `{"topic": "...", "metric_name": "..."}` | 세이버매트릭스 컬럼 스트리밍 |
 
 > AI 엔드포인트는 현재 mock 스트리밍입니다. 실제 LLM을 호출하지 않습니다.
 
+### Metrics
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | `/api/v1/metrics/definitions` | 전체 지표 카탈로그 (50+ 지표) |
+| GET | `/api/v1/metrics/run-expectancy` | 24 base-out state 기대득점 테이블 |
+| GET | `/api/v1/metrics/win-expectancy` | 승리확률 테이블 |
+| GET | `/api/v1/metrics/players/{player_id}/summary` | 선수 세이버매트릭스 요약 |
+| GET | `/api/v1/metrics/teams/{team_id}/pythagorean` | 팀 피타고리안 기대승률 |
+| GET | `/api/v1/metrics/games/{game_id}/context` | 경기 맥락 지표 (WPA/LI 상위 플레이) |
+
+### Ingestion
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | `/api/v1/ingestion/status` | KBO ingestion 설정 상태 |
+| POST | `/api/v1/ingestion/kbo-data/schedule` | 일정 수집 (KBO_DATA_ENABLED=true 필요) |
+| POST | `/api/v1/ingestion/kbo-data/game-data` | 경기 데이터 수집 (KBO_DATA_ENABLED=true 필요) |
+
 ---
 
-## Mock 데이터 교체 방법
+## kbo-data를 optional ingestion source로 사용하기
 
-### 1. KBO 실제 데이터 수집기 연결
-`backend/app/workers/ingest_games.py`의 `main()` 함수에 실제 KBO 데이터 소스 연동 코드를 추가한다.
+### 요구사항
+- Python package: `kbodata` (pip install kbodata)
+- ChromeDriver: KBO 공식 홈페이지 스크래핑에 사용
 
-```python
-# 예: KBO 공식 데이터 API 연동
-async def main():
-    games = await kbo_client.fetch_today_games()
-    for game in games:
-        await real_repo.upsert_game(game)
+### ChromeDriver 설치
+
+```bash
+# macOS (Homebrew)
+brew install --cask chromedriver
+
+# 또는 직접 다운로드 후 경로 설정
+export KBO_CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ```
 
-### 2. PostgreSQL Repository 연결
-`backend/app/repositories/` 아래 `postgres_repository.py`를 추가하고,  
-`MockRepository`와 동일한 메서드 시그니처를 구현한다.  
-각 domain service에서 `mock_repo` 대신 `pg_repo`를 주입하면 된다.
+### 활성화 방법
 
-```python
-# backend/app/domain/teams/service.py
-from app.repositories.postgres_repository import pg_repo  # 교체
-
-class TeamsService:
-    def list_teams(self):
-        return pg_repo.list_teams()
+```bash
+# .env 또는 환경변수로 설정
+KBO_DATA_ENABLED=true
+KBO_INGESTION_MODE=kbo-data
+KBO_CHROMEDRIVER_PATH=/path/to/chromedriver
+KBO_REQUEST_DELAY_SECONDS=2.0   # 서버 부하 방지를 위해 충분히 늘릴 것
 ```
 
-### 3. 세이버매트릭스 배치 계산
-`backend/app/workers/compute_sabermetrics.py`에서  
-`analytics.sabermetrics.batting` / `pitching` 함수를 호출하고 결과를 DB에 저장한다.
+### Worker CLI 사용법
+
+```bash
+cd backend
+
+# 일정 수집 (dry-run — KBO_DATA_ENABLED=false일 때)
+python -m app.workers.ingest_kbo_schedule --year 2025 --month 6 --day 16 --mode daily
+
+# 실제 수집 (KBO_DATA_ENABLED=true 필요)
+KBO_DATA_ENABLED=true KBO_INGESTION_MODE=kbo-data \
+KBO_CHROMEDRIVER_PATH=/path/to/chromedriver \
+python -m app.workers.ingest_kbo_schedule --year 2025 --month 6 --day 16
+
+# 경기 데이터 수집
+KBO_DATA_ENABLED=true KBO_INGESTION_MODE=kbo-data \
+KBO_CHROMEDRIVER_PATH=/path/to/chromedriver \
+python -m app.workers.ingest_kbo_game_data --year 2025 --month 6 --day 16
+```
+
+### kbo-data의 한계
+
+| 항목 | 제공 여부 | 비고 |
+|------|----------|------|
+| 박스스코어 | O | scoreboard |
+| 타자 기록 | O | away_batter, home_batter |
+| 투수 기록 | O | away_pitcher, home_pitcher |
+| 이닝 기록 | O | ETC_info |
+| Play-by-play 이벤트 | X | RE24, WPA 계산 불가 |
+| Statcast 트래킹 | X | Exit Velocity 등 |
+| 수비 지표 원데이터 | X | UZR, DRS 계산 불가 |
+
+> **중요**: KBO 공식 홈페이지 이용약관 및 robots.txt를 반드시 확인하세요.  
+> 과도한 요청 자제, `KBO_REQUEST_DELAY_SECONDS` 설정으로 딜레이를 충분히 줘야 합니다.  
+> 실 서비스 전에 데이터 출처·권리 관계를 별도로 검토해야 합니다.
+
+### mock fallback 동작
+
+```
+KBO_DATA_ENABLED=false (기본값)
+  → mock 데이터 즉시 반환 (ChromeDriver 불필요, kbodata 불필요)
+
+KBO_DATA_ENABLED=true + KBO_INGESTION_MODE=kbo-data
+  → kbodata 호출 시도
+    성공 → raw payload 저장 → normalize → 반환
+    실패 → error log + KboIngestionError 반환
+```
 
 ---
 
 ## ML 모델 연결 방법
 
-`backend/app/ml/registry.py`에 실제 모델을 등록하면 된다:
+`backend/app/ml/registry.py`에 실제 모델을 등록하면 됩니다:
 
 ```python
 from your_module import RealWinProbModel  # joblib, lightgbm, sklearn, torch 등
@@ -148,14 +228,20 @@ from your_module import RealWinProbModel  # joblib, lightgbm, sklearn, torch 등
 registry.register("win_probability", "1.0.0-lgbm", RealWinProbModel.load("model.pkl"))
 ```
 
-모든 ML 계약(I/O 스키마)은 `backend/app/ml/contracts.py`에 정의돼 있다.  
-API route는 registry를 통해 모델을 사용하므로 코드 변경 없이 모델을 교체할 수 있다.
+현재 등록된 모델:
+- `win_probability` — rule-based 승리확률 추정 (heuristic)
+- `player_projection` — 선수 성적 예측 (placeholder)
+- `article_topic` — 기사 주제 분류 (placeholder)
+- `regression_adjusted_batting` — Empirical Bayes shrinkage 보정 타율/OPS
+- `slump_risk` — 슬럼프 위험도 점수 (rule-based)
+
+모든 ML 계약(I/O 스키마)은 `backend/app/ml/contracts.py`에 정의돼 있습니다.
 
 ---
 
 ## 실제 LLM 연결 방법
 
-`backend/app/ai/generation_service.py`의 `GenerationService`에 LLM provider 분기를 추가한다:
+`backend/app/ai/generation_service.py`의 `GenerationService`에 LLM provider 분기를 추가합니다:
 
 ```python
 if settings.LLM_PROVIDER == "anthropic":
@@ -164,8 +250,8 @@ if settings.LLM_PROVIDER == "anthropic":
         yield chunk
 ```
 
-`backend/app/ai/prompt_builder.py`에 실제 LLM prompt가 이미 skeleton으로 준비돼 있다.  
-`.env`에서 `LLM_PROVIDER=anthropic`과 `LLM_API_KEY=sk-ant-...`를 설정하면 된다.
+> AI는 sabermetrics engine이 계산한 JSON을 **설명**만 합니다.  
+> LLM이 수치를 직접 계산하거나 추론하지 않습니다.
 
 ---
 
@@ -176,4 +262,39 @@ cd backend
 pytest -v
 ```
 
-총 56개 테스트 (API 통합 테스트 23개 + 세이버매트릭스 유닛 테스트 33개).
+현재 243개 테스트 통과:
+
+| 파일 | 개수 | 내용 |
+|------|------|------|
+| test_api.py | 37 | API 통합 테스트 |
+| test_sabermetrics.py | 33 | 원본 세이버매트릭스 테스트 |
+| test_batting_metrics.py | 20 | 타격 지표 유닛 테스트 |
+| test_pitching_metrics.py | 24 | 투구 지표 유닛 테스트 |
+| test_run_expectancy.py | 18 | 기대득점 테이블 테스트 |
+| test_wpa.py | 21 | WPA/LI 테스트 |
+| test_pythagorean.py | 14 | 피타고리안 테스트 |
+| test_ml_registry.py | 14 | ML 레지스트리 테스트 |
+| test_kbo_data_adapter.py | 22 | ingestion/normalization 테스트 |
+
+> 테스트는 ChromeDriver, kbodata, 실제 LLM API 없이 모두 통과합니다.
+
+---
+
+## Mock 데이터 교체 방법
+
+### 1. PostgreSQL Repository 연결
+
+`backend/app/repositories/postgres_repository.py`를 추가하고 `MockRepository`와 동일한 메서드를 구현합니다.
+
+```python
+# backend/app/domain/teams/service.py
+from app.repositories.postgres_repository import pg_repo  # 교체
+```
+
+### 2. 세이버매트릭스 배치 계산
+
+`backend/app/workers/compute_sabermetrics.py`에서 `analytics.sabermetrics.*` 함수를 호출하고 결과를 DB에 저장합니다.
+
+### 3. KBO ingestion 활성화
+
+위의 "kbo-data를 optional ingestion source로 사용하기" 섹션 참조.

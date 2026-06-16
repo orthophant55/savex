@@ -37,11 +37,15 @@ def _build_registry() -> ModelRegistry:
     from app.ml.models.win_probability_model import WinProbabilityModel
     from app.ml.models.player_projection_model import PlayerProjectionModel
     from app.ml.models.article_topic_model import ArticleTopicModel
+    from app.ml.models.regression_adjusted_batting_model import RegressionAdjustedBattingModel
+    from app.ml.models.slump_risk_model import SlumpRiskModel
 
     reg = ModelRegistry()
-    reg.register("win_probability",   "0.1.0-rule-based", WinProbabilityModel())
-    reg.register("player_projection", "0.1.0-dummy",      PlayerProjectionModel())
-    reg.register("article_topic",     "0.1.0-mock",       ArticleTopicModel())
+    reg.register("win_probability",              "0.1.0-rule-based", WinProbabilityModel())
+    reg.register("player_projection",            "0.1.0-dummy",      PlayerProjectionModel())
+    reg.register("article_topic",                "0.1.0-mock",       ArticleTopicModel())
+    reg.register("regression_adjusted_batting",  "0.1.0-shrinkage",  RegressionAdjustedBattingModel())
+    reg.register("slump_risk",                   "0.1.0-placeholder", SlumpRiskModel())
     return reg
 
 

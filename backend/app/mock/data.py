@@ -1422,16 +1422,16 @@ MOCK_GAMES: List[Dict[str, Any]] = [
 # ──────────────────────────────────────────────
 
 MOCK_STANDINGS: List[Dict[str, Any]] = [
-    {"rank": 1,  "team_id": "KIA",     "wins": 52, "losses": 31, "draws": 2, "win_rate": 0.627, "games_behind": 0.0,  "streak": "W3",  "recent_form": ["W","W","W","L","W"]},
-    {"rank": 2,  "team_id": "LG",      "wins": 50, "losses": 33, "draws": 2, "win_rate": 0.602, "games_behind": 2.0,  "streak": "W2",  "recent_form": ["W","W","L","W","L"]},
-    {"rank": 3,  "team_id": "SSG",     "wins": 48, "losses": 35, "draws": 2, "win_rate": 0.578, "games_behind": 4.0,  "streak": "L1",  "recent_form": ["L","W","W","W","L"]},
-    {"rank": 4,  "team_id": "SAMSUNG", "wins": 46, "losses": 37, "draws": 2, "win_rate": 0.554, "games_behind": 6.0,  "streak": "W1",  "recent_form": ["W","L","W","L","W"]},
-    {"rank": 5,  "team_id": "KT",      "wins": 44, "losses": 39, "draws": 2, "win_rate": 0.530, "games_behind": 8.0,  "streak": "L2",  "recent_form": ["L","L","W","W","L"]},
-    {"rank": 6,  "team_id": "DOOSAN",  "wins": 41, "losses": 42, "draws": 2, "win_rate": 0.494, "games_behind": 11.0, "streak": "W1",  "recent_form": ["W","L","L","W","L"]},
-    {"rank": 7,  "team_id": "NC",      "wins": 38, "losses": 45, "draws": 2, "win_rate": 0.458, "games_behind": 14.0, "streak": "L3",  "recent_form": ["L","L","L","W","L"]},
-    {"rank": 8,  "team_id": "HANWHA",  "wins": 36, "losses": 47, "draws": 2, "win_rate": 0.434, "games_behind": 16.0, "streak": "W2",  "recent_form": ["W","W","L","L","L"]},
-    {"rank": 9,  "team_id": "LOTTE",   "wins": 33, "losses": 50, "draws": 2, "win_rate": 0.398, "games_behind": 19.0, "streak": "L1",  "recent_form": ["L","W","L","L","W"]},
-    {"rank": 10, "team_id": "KIWOOM",  "wins": 28, "losses": 55, "draws": 2, "win_rate": 0.337, "games_behind": 24.0, "streak": "L4",  "recent_form": ["L","L","L","L","W"]},
+    {"rank": 1,  "team_id": "KIA",     "wins": 52, "losses": 31, "draws": 2, "win_rate": 0.627, "games_behind": 0.0,  "streak": "W3",  "recent_form": ["W","W","W","L","W"], "runs_scored": 482, "runs_allowed": 361, "run_differential": 121, "pythagorean_wp": 0.641},
+    {"rank": 2,  "team_id": "LG",      "wins": 50, "losses": 33, "draws": 2, "win_rate": 0.602, "games_behind": 2.0,  "streak": "W2",  "recent_form": ["W","W","L","W","L"], "runs_scored": 451, "runs_allowed": 358, "run_differential": 93, "pythagorean_wp": 0.614},
+    {"rank": 3,  "team_id": "SSG",     "wins": 48, "losses": 35, "draws": 2, "win_rate": 0.578, "games_behind": 4.0,  "streak": "L1",  "recent_form": ["L","W","W","W","L"], "runs_scored": 430, "runs_allowed": 370, "run_differential": 60, "pythagorean_wp": 0.574},
+    {"rank": 4,  "team_id": "SAMSUNG", "wins": 46, "losses": 37, "draws": 2, "win_rate": 0.554, "games_behind": 6.0,  "streak": "W1",  "recent_form": ["W","L","W","L","W"], "runs_scored": 415, "runs_allowed": 375, "run_differential": 40, "pythagorean_wp": 0.550},
+    {"rank": 5,  "team_id": "KT",      "wins": 44, "losses": 39, "draws": 2, "win_rate": 0.530, "games_behind": 8.0,  "streak": "L2",  "recent_form": ["L","L","W","W","L"], "runs_scored": 398, "runs_allowed": 382, "run_differential": 16, "pythagorean_wp": 0.522},
+    {"rank": 6,  "team_id": "DOOSAN",  "wins": 41, "losses": 42, "draws": 2, "win_rate": 0.494, "games_behind": 11.0, "streak": "W1",  "recent_form": ["W","L","L","W","L"], "runs_scored": 380, "runs_allowed": 388, "run_differential": -8, "pythagorean_wp": 0.491},
+    {"rank": 7,  "team_id": "NC",      "wins": 38, "losses": 45, "draws": 2, "win_rate": 0.458, "games_behind": 14.0, "streak": "L3",  "recent_form": ["L","L","L","W","L"], "runs_scored": 362, "runs_allowed": 402, "run_differential": -40, "pythagorean_wp": 0.448},
+    {"rank": 8,  "team_id": "HANWHA",  "wins": 36, "losses": 47, "draws": 2, "win_rate": 0.434, "games_behind": 16.0, "streak": "W2",  "recent_form": ["W","W","L","L","L"], "runs_scored": 341, "runs_allowed": 420, "run_differential": -79, "pythagorean_wp": 0.398},
+    {"rank": 9,  "team_id": "LOTTE",   "wins": 33, "losses": 50, "draws": 2, "win_rate": 0.398, "games_behind": 19.0, "streak": "L1",  "recent_form": ["L","W","L","L","W"], "runs_scored": 325, "runs_allowed": 435, "run_differential": -110, "pythagorean_wp": 0.357},
+    {"rank": 10, "team_id": "KIWOOM",  "wins": 28, "losses": 55, "draws": 2, "win_rate": 0.337, "games_behind": 24.0, "streak": "L4",  "recent_form": ["L","L","L","L","W"], "runs_scored": 298, "runs_allowed": 461, "run_differential": -163, "pythagorean_wp": 0.295},
 ]
 
 # ──────────────────────────────────────────────

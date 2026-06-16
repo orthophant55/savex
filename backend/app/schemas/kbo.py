@@ -164,6 +164,10 @@ class Standing(BaseModel):
     games_behind: float
     streak: str
     recent_form: List[str]
+    runs_scored: Optional[int] = None
+    runs_allowed: Optional[int] = None
+    run_differential: Optional[int] = None
+    pythagorean_wp: Optional[float] = None
 
 
 class StatLeaderEntry(BaseModel):

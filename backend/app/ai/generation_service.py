@@ -41,7 +41,28 @@ class GenerationService:
             async for chunk in stream_player_analysis(player):
                 yield chunk
         else:
-            # TODO: implement real LLM call
+            raise NotImplementedError(f"LLM provider '{settings.LLM_PROVIDER}' not yet implemented")
+
+    async def team_analysis_stream(self, team_id: str) -> AsyncGenerator[str, None]:
+        team = self._repo.get_team(team_id)
+        if not team:
+            raise NotFoundError("Team", team_id)
+
+        if settings.LLM_PROVIDER == "mock":
+            from app.ai.mock_generator import stream_team_analysis
+            async for chunk in stream_team_analysis(team):
+                yield chunk
+        else:
+            raise NotImplementedError(f"LLM provider '{settings.LLM_PROVIDER}' not yet implemented")
+
+    async def sabermetric_column_stream(
+        self, topic: str, metric_names: list[str]
+    ) -> AsyncGenerator[str, None]:
+        if settings.LLM_PROVIDER == "mock":
+            from app.ai.mock_generator import stream_sabermetric_column
+            async for chunk in stream_sabermetric_column(topic, metric_names):
+                yield chunk
+        else:
             raise NotImplementedError(f"LLM provider '{settings.LLM_PROVIDER}' not yet implemented")
 
 

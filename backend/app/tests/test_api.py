@@ -176,3 +176,131 @@ def test_article_by_id():
 def test_article_not_found():
     res = client.get("/api/v1/articles/NO_ARTICLE")
     assert res.status_code == 404
+
+
+# ── Metrics API ──────────────────────────────────────────────────
+
+def test_metric_definitions():
+    res = client.get("/api/v1/metrics/definitions")
+    assert res.status_code == 200
+    defs = res.json()
+    assert len(defs) > 10
+    names = [d["name"] for d in defs]
+    assert "AVG" in names
+    assert "wOBA" in names
+    assert "FIP" in names
+    assert "WPA" in names
+
+
+def test_run_expectancy_table():
+    res = client.get("/api/v1/metrics/run-expectancy")
+    assert res.status_code == 200
+    table = res.json()
+    assert len(table) == 24
+
+
+def test_win_expectancy_table():
+    res = client.get("/api/v1/metrics/win-expectancy")
+    assert res.status_code == 200
+    table = res.json()
+    assert len(table) > 0
+
+
+def test_player_metric_summary():
+    res = client.get("/api/v1/metrics/players/KIA001/summary")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["player_id"] == "KIA001"
+    assert "basic_metrics" in data
+
+
+def test_team_pythagorean():
+    res = client.get("/api/v1/metrics/teams/KIA/pythagorean")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["team_id"] == "KIA"
+    assert 0 <= data["pythagorean_wp"] <= 1
+
+
+def test_game_context_metrics():
+    res = client.get("/api/v1/metrics/games/game_1/context")
+    assert res.status_code == 200
+    data = res.json()
+    assert "top_wpa_plays" in data
+    assert "high_leverage_plays" in data
+
+
+# ── Player Projections ───────────────────────────────────────────
+
+def test_player_projection():
+    res = client.get("/api/v1/players/LG001/projection")
+    assert res.status_code == 200
+    data = res.json()
+    assert "model_name" in data
+    assert "model_version" in data
+    assert "confidence" in data
+
+
+def test_regression_adjusted():
+    res = client.get("/api/v1/players/KIA001/regression-adjusted")
+    assert res.status_code == 200
+    data = res.json()
+    assert "observed_avg" in data
+    assert "adjusted_avg" in data
+    assert "reliability_score" in data
+    assert 0 <= data["reliability_score"] <= 1
+
+
+def test_slump_risk():
+    res = client.get("/api/v1/players/LG001/slump-risk")
+    assert res.status_code == 200
+    data = res.json()
+    assert "risk_score" in data
+    assert data["risk_label"] in ("low", "medium", "high")
+
+
+# ── Ingestion API ─────────────────────────────────────────────────
+
+def test_ingestion_status():
+    res = client.get("/api/v1/ingestion/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert "kbo_data_enabled" in data
+    assert data["kbo_data_enabled"] is False
+
+
+def test_ingestion_schedule_disabled():
+    """When KBO_DATA_ENABLED=false, schedule endpoint should return 403."""
+    res = client.post(
+        "/api/v1/ingestion/kbo-data/schedule",
+        json={"year": 2025, "month": 6, "day": 16, "mode": "daily"},
+    )
+    assert res.status_code == 403
+
+
+def test_ingestion_game_data_disabled():
+    """When KBO_DATA_ENABLED=false, game-data endpoint should return 403."""
+    res = client.post(
+        "/api/v1/ingestion/kbo-data/game-data",
+        json={"year": 2025, "month": 6, "day": 16},
+    )
+    assert res.status_code == 403
+
+
+# ── AI Streaming ──────────────────────────────────────────────────
+
+def test_ai_team_analysis():
+    res = client.post("/api/v1/ai/team-analysis", json={"team_id": "LG"})
+    assert res.status_code == 200
+    content = res.text
+    assert len(content) > 0
+
+
+def test_ai_sabermetric_column():
+    res = client.post(
+        "/api/v1/ai/sabermetric-column",
+        json={"topic": "wOBA와 FIP", "metric_names": ["wOBA", "FIP"]},
+    )
+    assert res.status_code == 200
+    content = res.text
+    assert len(content) > 0

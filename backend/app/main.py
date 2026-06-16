@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.exceptions import AppValidationError, NotFoundError
 from app.core.logging import get_logger
-from app.api.routes import health, teams, players, games, stats, articles, ai
+from app.api.routes import health, teams, players, games, stats, articles, ai, metrics, ingestion
 
 logger = get_logger(__name__)
 
@@ -55,5 +55,7 @@ app.include_router(games.router, prefix=prefix)
 app.include_router(stats.router, prefix=prefix)
 app.include_router(articles.router, prefix=prefix)
 app.include_router(ai.router, prefix=prefix)
+app.include_router(metrics.router, prefix=prefix)
+app.include_router(ingestion.router, prefix=prefix)
 
 

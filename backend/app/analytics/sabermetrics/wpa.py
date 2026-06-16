@@ -1,5 +1,12 @@
 """Win Probability Added (WPA) and Leverage Index calculations."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.schemas.kbo import PlayEvent
+
 
 def clamp_probability(value: float) -> float:
     """Clamp win probability to [0.0, 1.0]."""
@@ -21,3 +28,21 @@ def calculate_leverage_index(abs_wp_change: float, avg_abs_wp_change: float) -> 
     if avg_abs_wp_change == 0:
         return 0.0
     return round(abs(abs_wp_change) / avg_abs_wp_change, 3)
+
+
+def rank_plays_by_wpa(play_events: list[Any]) -> list[Any]:
+    """Sort play events by absolute WPA value descending.
+
+    Events without a wpa field are excluded from the ranking.
+    """
+    with_wpa = [e for e in play_events if getattr(e, "wpa", None) is not None]
+    return sorted(with_wpa, key=lambda e: abs(e.wpa or 0), reverse=True)
+
+
+def rank_plays_by_li(play_events: list[Any]) -> list[Any]:
+    """Sort play events by Leverage Index descending.
+
+    Events without a li field are excluded from the ranking.
+    """
+    with_li = [e for e in play_events if getattr(e, "li", None) is not None]
+    return sorted(with_li, key=lambda e: e.li or 0, reverse=True)

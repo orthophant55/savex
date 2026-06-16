@@ -10,7 +10,7 @@ import random
 from typing import AsyncGenerator
 
 from app.schemas.article import Article
-from app.schemas.kbo import Game, Player
+from app.schemas.kbo import Game, Player, Team
 
 
 def _chunks(text: str, size: int = 20):
@@ -108,6 +108,66 @@ async def stream_player_analysis(player: Player) -> AsyncGenerator[str, None]:
             f"[DONE]"
         )
 
+    for chunk in _chunks(body, size=random.randint(15, 35)):
+        yield chunk
+        await asyncio.sleep(random.uniform(0.08, 0.25))
+
+
+async def stream_team_analysis(team: Team) -> AsyncGenerator[str, None]:
+    """Generate a mock team analysis as a streaming text response."""
+    body = (
+        f"## {team.name_ko} 팀 분석 (2025)\n\n"
+        f"**팀 개요**\n"
+        f"- 홈구장: {team.stadium} ({team.home_city})\n\n"
+        f"**공격 요약**\n"
+        f"- 팀 OPS .761 (리그 평균 수준)\n"
+        f"- 팀 wOBA .320 — 기대 득점에 부합\n"
+        f"- 득점 생산 효율: wRC+ 102\n\n"
+        f"**투수 요약**\n"
+        f"- 팀 ERA 4.20 / FIP 4.05\n"
+        f"- FIP < ERA: 수비·운 혜택 일부 존재 → 추후 ERA 상승 가능성\n"
+        f"- 불펜 홀드율 63%로 준수\n\n"
+        f"**피타고라스 기대승률 분석**\n"
+        f"- 득실점 기반 기대승률: .550\n"
+        f"- 실제 승률: .578\n"
+        f"- 실제 - 기대: +2.5승 → 클러치 or 불펜 강도\n\n"
+        f"**전망**\n"
+        f"- 기대승률 대비 과수행 중. 후반기 회귀 가능성 점검 필요.\n"
+        f"- wRC+가 지속되면 상위권 유지 가능.\n\n"
+        f"> ⚠️ MOCK AI 생성 콘텐츠입니다. 실제 수치와 다를 수 있습니다.\n\n"
+        f"[DONE]"
+    )
+    for chunk in _chunks(body, size=random.randint(15, 35)):
+        yield chunk
+        await asyncio.sleep(random.uniform(0.08, 0.25))
+
+
+async def stream_sabermetric_column(
+    topic: str, metric_names: list[str]
+) -> AsyncGenerator[str, None]:
+    """Generate a mock sabermetric column as a streaming text response."""
+    metrics_str = ", ".join(metric_names) if metric_names else "wOBA, FIP, WAR"
+    body = (
+        f"## 세이버매트릭스 칼럼: {topic}\n\n"
+        f"**다루는 지표**: {metrics_str}\n\n"
+        f"**핵심 개념**\n"
+        f"야구 기록은 단순한 결과가 아니라 득점가치·승리기여·예측값으로 변환될 수 있다.\n"
+        f"이 칼럼에서는 '{topic}'를 중심으로 KBO에서의 적용 방법을 살펴본다.\n\n"
+        f"**wOBA (가중 출루율)**\n"
+        f"- 단타, 2루타, 홈런, 볼넷의 실제 득점가치를 반영한 출루율 스케일 지표\n"
+        f"- OPS보다 정확하게 타격 생산성을 측정함\n"
+        f"- KBO 전용 가중치는 KBO RE table 기반 추정 필요 (현재 MLB placeholder 사용 중)\n\n"
+        f"**FIP (수비무관 평균자책점)**\n"
+        f"- HR, BB, HBP, K처럼 투수가 직접 통제하는 이벤트만 반영\n"
+        f"- ERA와 FIP의 차이가 크면 수비·운 영향을 의심해야 함\n"
+        f"- KBO FIP constant는 lgERA = lgFIP가 되도록 조정 필요\n\n"
+        f"**KBO 적용 시 주의점**\n"
+        f"- KBO 공개 데이터 한계로 일부 지표는 MLB 파라미터를 placeholder로 사용\n"
+        f"- 구장 효과, 리그 득점환경, 시즌별 편차를 반드시 고려해야 함\n"
+        f"- Statcast급 트래킹 데이터 없이는 xBA, xwOBA, HardHit% 구현 불가\n\n"
+        f"> ⚠️ MOCK AI 생성 콘텐츠입니다. 실제 분석과 다를 수 있습니다.\n\n"
+        f"[DONE]"
+    )
     for chunk in _chunks(body, size=random.randint(15, 35)):
         yield chunk
         await asyncio.sleep(random.uniform(0.08, 0.25))
